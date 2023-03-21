@@ -1,24 +1,36 @@
+{{- define "myapp.fullname" -}}
+{{- printf "%s-%s" .Release.Name .Chart.Name }}
+{{- end }}
+
+{{- define "myapp.deploymentName" -}}
+{{- printf "%s-%s" .Release.Name "myapp-deployment" }}
+{{- end }}
+
+{{- define "myapp.serviceName" -}}
+{{- printf "%s-%s" .Release.Name "myapp-service" }}
+{{- end }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app
+  name: {{ template "myapp.deploymentName" . }}
   labels:
-    app: my-app
+    app: {{ template "myapp.fullname" . }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: my-app
+      app: {{ template "myapp.fullname" . }}
   template:
     metadata:
       labels:
-        app: my-app
+        app: {{ template "myapp.fullname" . }}
     spec:
       containers:
-        - name: my-app
-          image: nginx:1.19.7
+        - name: myapp
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
           env:
             - name: MESSAGE
               value: {{ .Values.message }}
-          ports:
-            - containerPort: 80
