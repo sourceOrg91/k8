@@ -1,1 +1,12 @@
-message: Hello World One!
+replicaCount: 1
+
+image:
+  repository: nginx
+  tag: stable
+  pullPolicy: IfNotPresent
+
+message: Hello, world one!
+
+service:
+  type: ClusterIP
+  port: 80
