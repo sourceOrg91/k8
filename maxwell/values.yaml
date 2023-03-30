@@ -1,1 +1,2 @@
-asasas
+image: dview/dp-maxwell:v1.0.0
+imagePullPolicy: Always # IfNotPresent,Always
