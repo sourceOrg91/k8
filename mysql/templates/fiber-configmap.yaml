@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fiber-config-{{ .Release.Name }}
+  labels:
+    app: fiber
+data:
+  flink-conf.yaml: |+
+    execution.attached: false
+    jobmanager.rpc.address: fiber-application
+    taskmanager.numberOfTaskSlots: 1
+    blob.server.port: 6124
+    jobmanager.rpc.port: 6123
+    taskmanager.rpc.port: 6122
+    queryable-state.proxy.ports: 6125
+    env.java.opts: "-XX:+UseG1GC"
+    jobmanager.memory.process.size: {{ .Values.fiber.applicationMemoryProcessSize }}
+    jobmanager.memory.jvm-metaspace.size: 1g
+    env.java.opts.jobmanager: "-XX:+UseG1GC"
+    taskmanager.memory.process.size: {{ .Values.fiber.jobMemoryProcessSize }}
+    taskmanager.memory.jvm-metaspace.size: 1g
+    taskmanager.memory.preallocate: true
+    env.java.opts.taskmanager: "-XX:+UseG1GC"
+    parallelism.default: {{ .Values.fiber.applicationArg.parallelismDefault }}
+    kubernetes.cluster-id: fiber-nrt-{{ .Release.Name }}
+    high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory
+    high-availability.storageDir: {{ .Values.fiber.applicationArg.stateBackendStoragePath }}
+    state.backend: filesystem
+    state.checkpoints.dir: {{ .Values.fiber.applicationArg.savepointPath }}/checkpoints
+    state.savepoints.dir: {{ .Values.fiber.applicationArg.savepointPath }}
+    metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter
+    restart-strategy: fixed-delay
+    restart-strategy.fixed-delay.attempts: 100
+    # To fix error: FlinkKafkaConsumerBase.pendingOffsetsToCommit
+    classloader.resolve-order: parent-first
+    fs.allowed-fallback-filesystems: {{ .Values.fiber.applicationArg.allowedFallbackFilesystems }}
+    scheduler-mode: reactive
+    taskmanager.memory.network.min: {{ .Values.fiber.jobNetworkMemoryMin }}
+    taskmanager.memory.network.max: {{ .Values.fiber.jobNetworkMemoryMax }}
+    execution.checkpointing.interval: {{ .Values.fiber.executionCheckpointingInterval }}
+    execution.checkpointing.externalized-checkpoint-retention: DELETE_ON_CANCELLATION
+    execution.checkpointing.unaligned: true
+  {{- if .Values.fiber.fileDetails.provideExplicitly }}
+  s3.path.style.access : "{{ .Values.fiber.fileDetails.provideExplicitly }}"
+  s3.endpoint: {{ .Values.fiber.fileDetails.fileEndpoint }}
+  s3.region: {{ .Values.fiber.fileDetails.fileRegion }}
+  s3.access-key: {{ .Values.fiber.fileDetails.fileAccessKey }}
+  s3.secret-key: {{ .Values.fiber.fileDetails.fileSecretKey }}
+  {{- end }}
+
+  log4j-console.properties: |+
+    # This affects logging for both user code and Flink
+    rootLogger.level = {{ .Values.fiber.logType }}
+    rootLogger.appenderRef.console.ref = ConsoleAppender
+    rootLogger.appenderRef.rolling.ref = RollingFileAppender
+
+    # Uncomment this if you want to _only_ change Flink's logging
+    logger.flink.name = org.apache.flink
+    logger.flink.level = ERROR
+
+    # The following lines keep the log level of common libraries/connectors on
+    # log level INFO. The root logger does not override this. You have to manually
+    # change the log levels here.
+    logger.akka.name = akka
+    logger.akka.level = ERROR
+    logger.kafka.name= org.apache.kafka
+    logger.kafka.level = ERROR
+    logger.hadoop.name = org.apache.hadoop
+    logger.hadoop.level = ERROR
+    logger.zookeeper.name = org.apache.zookeeper
+    logger.zookeeper.level = ERROR
+
+    # Log all infos to the console
+    appender.console.name = ConsoleAppender
+    appender.console.type = CONSOLE
+    appender.console.layout.type = PatternLayout
+    appender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+
+    # Log all infos in the given rolling file
+    appender.rolling.name = RollingFileAppender
+    appender.rolling.type = RollingFile
+    appender.rolling.append = false
+    appender.rolling.fileName = ${sys:log.file}
+    appender.rolling.filePattern = ${sys:log.file}.%i
+    appender.rolling.layout.type = PatternLayout
+    appender.rolling.layout.pattern = %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+    appender.rolling.policies.type = Policies
+    appender.rolling.policies.size.type = SizeBasedTriggeringPolicy
+    appender.rolling.policies.size.size=100MB
+    appender.rolling.strategy.type = DefaultRolloverStrategy
+    appender.rolling.strategy.max = 10
+
+    # Suppress the irrelevant (wrong) warnings from the Netty channel handler
+    logger.netty.name = org.jboss.netty.channel.DefaultChannelPipeline
+    logger.netty.level = OFF

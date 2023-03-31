@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fiber-job-{{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fiber
+      component: job
+  template:
+    metadata:
+      labels:
+        app: fiber
+        component: job
+    spec:
+      containers:
+        - name: fiber-job
+          image: {{ .Values.fiber.image }}
+          imagePullPolicy: {{ .Values.fiber.imagePullPolicy }}
+          env:
+            - name: KAFKA_TOPIC_NAME
+              value: {{ .Values.fiber.applicationArg.kafkaTopic }}
+            - name: MERGE_DISTRIBUTION
+              value: {{ .Values.fiber.applicationArg.mergeDistribution }}
+            - name: FIXED_WINDOW_SIZE
+              value: {{ .Values.fiber.applicationArg.fixedWindowSize }}
+            - name: ENABLE_BUILT_IN_PLUGINS
+              value: flink-s3-fs-hadoop-1.13.5.jar
+          args: ["taskmanager"]
+          ports:
+            - containerPort: 6122
+              name: rpc
+            - containerPort: 6125
+              name: query-state
+          livenessProbe:
+            tcpSocket:
+              port: 6122
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          volumeMounts:
+          {{- if .Values.fiber.pvc.enableEFS }}
+          - name: efs
+            mountPath: /var
+          {{- end }}
+          - name: flink-config-volume
+            mountPath: /opt/flink/conf/
+          securityContext:
+            runAsUser: 9999 # refers to user _flink_ from official flink image, change if necessary
+          resources:
+            {{- toYaml .Values.fiber.resources | nindent 12 }}
+      {{- with .Values.fiber.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.fiber.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.fiber.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.fiber.serviceAccount.name }}-{{ .Release.Name }} # Service account which has the permissions to create, edit, delete ConfigMaps
+      volumes:
+      {{- if .Values.fiber.pvc.enableEFS }}
+      - name: efs
+        persistentVolumeClaim:
+          claimName: {{ .Values.fiber.pvc.name }}
+      {{- end }}
+      - name: flink-config-volume
+        configMap:
+          name: fiber-config-{{ .Release.Name }}
+          items:
+            - key: flink-conf.yaml
+              path: flink-conf.yaml
+            - key: log4j-console.properties
+              path: log4j-console.properties

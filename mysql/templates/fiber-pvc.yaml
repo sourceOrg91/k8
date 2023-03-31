@@ -1,0 +1,13 @@
+{{- if .Values.fiber.pvc.enableEFS -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.fiber.pvc.name }}
+spec:
+  storageClassName: {{ .Values.fiber.pvc.storageClassName }}
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  {{- end }}
