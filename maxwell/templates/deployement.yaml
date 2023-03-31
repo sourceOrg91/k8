@@ -120,8 +120,6 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
-      nodeSelector:
-        processor: arm
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
