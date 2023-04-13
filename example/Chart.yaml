@@ -5,5 +5,5 @@ maintainers:
     name: test-app
 name: test-app
 sources:
-  - https://github.com/dview-io/maxwell
+  - https://github.com/sourceOrg91/
 version: 1.0.0
