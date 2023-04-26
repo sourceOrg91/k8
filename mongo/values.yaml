@@ -1,5 +1,5 @@
 mongo:
-  image: abc
+  image: mongoimage
   imagePullPolicy: IfNotPresent # IfNotPresent,Always
 
   applicationArg:
@@ -10,7 +10,7 @@ mongo:
     connectionURL: dummy
 
 fiber:
-  image: dview/fiber-nrt-fs:v0.0.1
+  image: fiberimage
   imagePullPolicy: Always # IfNotPresent,Always
   jobType: snapshot # Type of Job to be enabled as run as raw/snapshot/journal.
   logType: INFO # ERROR/INFO/WARN, Recommended is ERROR
