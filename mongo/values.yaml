@@ -1,1 +1,20 @@
-replication: 1
+mongo:
+  image: abc
+  imagePullPolicy: IfNotPresent # IfNotPresent,Always
+
+  applicationArg:
+    tenantId: 1
+    vertical: dp
+    org: dview
+    tenant: prod
+    connectionURL: dummy
+
+fiber:
+  image: dview/fiber-nrt-fs:v0.0.1
+  imagePullPolicy: Always # IfNotPresent,Always
+  jobType: snapshot # Type of Job to be enabled as run as raw/snapshot/journal.
+  logType: INFO # ERROR/INFO/WARN, Recommended is ERROR
+
+  applicationArg:
+    kafkaServers: kafka.default.svc.cluster.local:9092 #Kafka Endpoint
+    kafkaTopic: dview.capi.raven.users #Kafka topic to be processed
