@@ -1,36 +1,19 @@
-{{- define "myapp.fullname" -}}
-{{- printf "%s-%s" .Release.Name .Chart.Name }}
-{{- end }}
-
-{{- define "myapp.deploymentName" -}}
-{{- printf "%s-%s" .Release.Name "myapp-deployment" }}
-{{- end }}
-
-{{- define "myapp.serviceName" -}}
-{{- printf "%s-%s" .Release.Name "myapp-service" }}
-{{- end }}
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "myapp.deploymentName" . }}
-  labels:
-    app: {{ template "myapp.fullname" . }}
+  name: myapp1
 spec:
-  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "myapp.fullname" . }}
+      app: myapp
+  replicas: 2
   template:
     metadata:
       labels:
-        app: {{ template "myapp.fullname" . }}
+        app: myapp
     spec:
       containers:
-        - name: myapp
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          ports:
-            - containerPort: {{ .Values.service.port }}
-          env:
-            - name: MESSAGE
-              value: {{ .Values.message }}
+      - name: myapp
+        image: nanajanashia/argocd-app:1.0
+        ports:
+        - containerPort: 8080
