@@ -1,14 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "myapp.serviceName" . }}
-  labels:
-    app: {{ template "myapp.fullname" . }}
+  name: myapp-service
 spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - name: http
-      port: 80
-      targetPort: 80
   selector:
-    app: {{ template "myapp.fullname" . }}
+    app: myapp
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
