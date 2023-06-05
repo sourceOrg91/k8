@@ -1,19 +1,3 @@
-http:
-  http_url: 1
-  http_method: dummy
-  auth_type: dummy
-  username: dummy
-  password: dummy
-  token: dummy
-  headers:
-    Accept: ClusterIP
-    Content-Type: 80
-  params:
-    param1: dummy
-    param1: dummy
-  body: null
-  label: REST_API
-    
 fiber:
   logType: INFO
   applicationArg:
@@ -29,3 +13,4 @@ fiber:
     fileEndpoint: https://s3.ap-south-1.amazonaws.com/
     fileSecretKey: empty
     fileAccessKey: empty
+sourceDetailsId: 1    
